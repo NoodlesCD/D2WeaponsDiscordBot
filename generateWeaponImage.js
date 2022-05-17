@@ -17,6 +17,8 @@ module.exports = async function GenerateWeaponImage(result, interaction) {
     // Skip over non-weapons
     if (result.defaultDamageType == 0) { return };
 
+
+    // Returns a list of all perks for a specific column
     function GetSockets(num)  {
         let foundColumn = [];
         let columnDetails = [];
@@ -41,6 +43,7 @@ module.exports = async function GenerateWeaponImage(result, interaction) {
         return columnDetails;
     }
 
+
     // Weapon perk details
     let column1 = GetSockets(1);
     let column2 = GetSockets(2);
@@ -50,13 +53,15 @@ module.exports = async function GenerateWeaponImage(result, interaction) {
     let topColumnSize = column1.length >= column2.length ? column1.length : column2.length;
     let bottomColumnSize = column3.length >= column4.length ? column3.length : column4.length;
     let flavorTextSize = result.flavorText.length / 50;
-    
+    let instrinsicSize = (items.find(item => item.hash === result.sockets.socketEntries[0].singleInitialItemHash)).displayProperties.description.length / 50;
+
 
     // Generate canvas
-    const canvas = Canvas.createCanvas(880, 950 + (topColumnSize * 50) + (bottomColumnSize * 50) + (flavorTextSize * 30));
+    const canvas = Canvas.createCanvas(880, 950 + (topColumnSize * 50) + (bottomColumnSize * 50) + (flavorTextSize * 20) + (instrinsicSize * 15));
     const context = canvas.getContext('2d');
     const bg = await Canvas.loadImage("./bg.png");
     context.drawImage(bg, 0, 0, canvas.width, canvas.height);
+
 
     // Generates a stat bar
     function StatBar(statValue, xPadding, yStart) {
@@ -67,7 +72,8 @@ module.exports = async function GenerateWeaponImage(result, interaction) {
         context.fillStyle = '#ffffff';
     }
     
-    // Text wrapping for flavour-text
+
+    // Text wrapping for flavour-text & instrinsic perk
     function wrapText(context, text, x, y, maxWidth, lineHeight) {
         var words = text.split(' '),
             line = '',
@@ -105,6 +111,7 @@ module.exports = async function GenerateWeaponImage(result, interaction) {
         context.fillText(line, x, y);
         return lineCount;
     }
+
 
     // Foundry Icon
     context.globalAlpha = 0.3;
@@ -156,6 +163,7 @@ module.exports = async function GenerateWeaponImage(result, interaction) {
     context.font = '15px NHG-Regular';
     context.fillText("WEAPON STATS", 135, 190 + linePad);
     context.fillRect(130, 200 + linePad, 620, 1);
+
 
     // Weapon Statistics
     if (result.itemTypeDisplayName === "Grenade Launcher") {
@@ -296,10 +304,13 @@ module.exports = async function GenerateWeaponImage(result, interaction) {
         context.fillText(rpm, 700, 290 + linePad);
     }
 
+
+    // Weapon Perks
     context.textAlign = "left";
     context.font = '15px NHG-Regular';
     context.fillText("WEAPON PERKS", 135, 450 + linePad);
     context.fillRect(130, 460 + linePad, 620, 1);
+
 
     // Instrinsic
     context.font = '15px NHG-Bold';
@@ -312,55 +323,57 @@ module.exports = async function GenerateWeaponImage(result, interaction) {
     context.drawImage(instrinsicIcon, 160, 525 + linePad, 75, 75);
     context.fillText(instrinsic.name, 250, 547 + linePad);
     context.font = '18px NHG-Oblique';
-    wrapText(context, instrinsic.description, 250, 573 + linePad, 480, 20);
+    let instrPaddingCt = wrapText(context, instrinsic.description, 250, 573 + linePad, 480, 20);
+    let instrPadding = instrPaddingCt > 2 ? (instrPaddingCt - 2) * 30 : 0;
 
+    
     // Columns
     context.font = '15px NHG-Bold';
-    context.fillText("BARRELS / SIGHTS", 160, 640 + linePad);
-    context.fillRect(160, 650 + linePad, 250, 1);
+    context.fillText("BARRELS / SIGHTS", 160, 640 + linePad + instrPadding);
+    context.fillRect(160, 650 + linePad + instrPadding, 250, 1);
     for (let j = 0; j < column1.length; j++) {
         const col1pic = await Canvas.loadImage("http://www.bungie.net" + column1[j].pic);
-        context.drawImage(col1pic, 160, 680 + (j * 50) + linePad, 40, 40);
+        context.drawImage(col1pic, 160, 680 + (j * 50) + linePad + instrPadding, 40, 40);
         context.font = '20px NHG-Regular';
-        context.fillText(column1[j].name, 210, 707 + (j * 50) + linePad);
+        context.fillText(column1[j].name, 210, 707 + (j * 50) + linePad + instrPadding);
     }
 
     context.font = '15px NHG-Bold';
-    context.fillText("MAGAZINES", 480, 640 + linePad);
-    context.fillRect(480, 650 + linePad, 250, 1);
+    context.fillText("MAGAZINES", 480, 640 + linePad + instrPadding);
+    context.fillRect(480, 650 + linePad + instrPadding, 250, 1);
     for (let j = 0; j < column2.length; j++) {
         const col2pic = await Canvas.loadImage("http://www.bungie.net" + column2[j].pic);
-        context.drawImage(col2pic, 480, 680 + (j * 50) + linePad, 40, 40);
+        context.drawImage(col2pic, 480, 680 + (j * 50) + linePad + instrPadding, 40, 40);
         context.font = '20px NHG-Regular';
-        context.fillText(column2[j].name, 530, 707 + (j * 50) + linePad);
+        context.fillText(column2[j].name, 530, 707 + (j * 50) + linePad + instrPadding);
     }
 
     context.font = '15px NHG-Bold';
-    context.fillText("COLUMN 3", 160, 730 + (topColumnSize * 50) + linePad);
-    context.fillRect(160, 740 + (topColumnSize * 50) + linePad, 250, 1);
+    context.fillText("COLUMN 3", 160, 730 + (topColumnSize * 50) + linePad + instrPadding);
+    context.fillRect(160, 740 + (topColumnSize * 50) + linePad + instrPadding, 250, 1);
     for (let j = 0; j < column3.length; j++) {
         const col3pic = await Canvas.loadImage("http://www.bungie.net" + column3[j].pic);
-        context.drawImage(col3pic, 160, 770 + (topColumnSize * 50) + (j * 50) + linePad, 40, 40);
+        context.drawImage(col3pic, 160, 770 + (topColumnSize * 50) + (j * 50) + linePad + instrPadding, 40, 40);
         context.font = '20px NHG-Regular';
-        context.fillText(column3[j].name, 210, 797 + (topColumnSize * 50) + (j * 50) + linePad);
+        context.fillText(column3[j].name, 210, 797 + (topColumnSize * 50) + (j * 50) + linePad + instrPadding);
     }
 
     if (column4.length > 0) {
         context.font = '15px NHG-Bold';
-        context.fillText("COLUMN 4", 480, 730 + (topColumnSize * 50) + linePad);
-        context.fillRect(480, 740 + (topColumnSize * 50) + linePad, 250, 1);
+        context.fillText("COLUMN 4", 480, 730 + (topColumnSize * 50) + linePad + instrPadding);
+        context.fillRect(480, 740 + (topColumnSize * 50) + linePad + instrPadding, 250, 1);
         for (let j = 0; j < column4.length; j++) {
             const col4pic = await Canvas.loadImage("http://www.bungie.net" + column4[j].pic);
-            context.drawImage(col4pic, 480, 770 + (topColumnSize * 50) + (j * 50) + linePad, 40, 40);
+            context.drawImage(col4pic, 480, 770 + (topColumnSize * 50) + (j * 50) + linePad + instrPadding, 40, 40);
             context.font = '20px NHG-Regular';
-            context.fillText(column4[j].name, 530, 797 + (topColumnSize * 50) + (j * 50) + linePad);
+            context.fillText(column4[j].name, 530, 797 + (topColumnSize * 50) + (j * 50) + linePad + instrPadding);
         }
     }
 
     context.textAlign = "right";
     context.font = '15px NHG-Regular';
-    context.fillText("NoodlesCD", 740, 830 + (topColumnSize * 50) + (bottomColumnSize * 50) + linePad);
-    context.fillRect(130, 810 + (topColumnSize * 50) + (bottomColumnSize * 50) + linePad, 620, 1);
+    context.fillText("NoodlesCD", 740, 830 + (topColumnSize * 50) + (bottomColumnSize * 50) + linePad + instrPadding);
+    context.fillRect(130, 810 + (topColumnSize * 50) + (bottomColumnSize * 50) + linePad + instrPadding, 620, 1);
 
     const attachment = new MessageAttachment(canvas.toBuffer(), result.hash + ".png");
 

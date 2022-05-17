@@ -5,10 +5,16 @@ const fetch = require('node-fetch');
 const { bungieAPIkey } = require("./config.json");
 const localManifest = require("./manifest/manifest.json");
 
-const job = schedule.scheduleJob("* 5 11 * * *", () => {
+const job = schedule.scheduleJob("* 15 11 * * *", async () => {
+    console.clear();
+    console.log("Next API update at: 11:15 \n Current manifest data:");
+    console.log("InventoryItemDefinition:" + localManifest.inventoryItemDefinition.replace("/common/destiny2_content/json/en/DestinyInventoryItemDefinition-", ""));
+    console.log("PlugSetDefinition:" + localManifest.plugSetDefinition.replace("/common/destiny2_content/json/en/DestinyPlugSetDefinition-", ""));
+    console.log("StatDefinition:" + localManifest.statDefinition.replace("/common/destiny2_content/json/en/DestinyStatDefinition-", ""));
+    console.log("DamageTypeDefinition:" + localManifest.damageTypeDefinition.replace("/common/destiny2_content/json/en/DestinyDamageTypeDefinition-", ""));
+    
     let changes = false;
-
-    let call = fetch("https://www.bungie.net/Platform/Destiny2/Manifest/", {
+    let call = await fetch("https://www.bungie.net/Platform/Destiny2/Manifest/", {
         method: "GET",
         headers: { "X-Auth-Token": bungieAPIkey }
     }).then(response => response.json());
@@ -35,7 +41,13 @@ const job = schedule.scheduleJob("* 5 11 * * *", () => {
         changes = true;
     }
 
-    if (changes) { fs.writeFileSync("./manifest/manifest.json", JSON.stringify(localManifest)); console.log("Manifest updated.") }
+    if (changes) { 
+        fs.writeFileSync("./manifest/manifest.json", JSON.stringify(localManifest)); 
+        console.log("Manifest updated.") }
+        console.log("InventoryItemDefinition:" + localManifest.inventoryItemDefinition.replace("/common/destiny2_content/json/en/DestinyInventoryItemDefinition-", ""));
+        console.log("PlugSetDefinition:" + localManifest.plugSetDefinition.replace("/common/destiny2_content/json/en/DestinyPlugSetDefinition-", ""));
+        console.log("StatDefinition:" + localManifest.statDefinition.replace("/common/destiny2_content/json/en/DestinyStatDefinition-", ""));
+        console.log("DamageTypeDefinition:" + localManifest.damageTypeDefinition.replace("/common/destiny2_content/json/en/DestinyDamageTypeDefinition-", ""));
 });
 
 async function download(url, path) {
